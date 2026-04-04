@@ -1,0 +1,238 @@
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:whitesmoke;
+font-family:'Figtree',sans-serif;
+}
+
+.login-wrapper{
+display:flex;
+width:750px;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+
+/* LOGIN */
+
+.login-card{
+flex:1;
+background:white;
+padding:40px;
+}
+
+.login-card h1{
+margin-bottom:10px;
+}
+
+.subtitle{
+color:#888;
+margin-bottom:20px;
+}
+
+/* INPUT */
+
+.input-group{
+display:flex;
+align-items:center;
+border:1px solid #ddd;
+border-radius:8px;
+padding:10px;
+margin-bottom:15px;
+}
+
+.input-group i{
+margin-right:10px;
+color:#a30000;
+}
+
+.input-group input{
+border:none;
+outline:none;
+flex:1;
+}
+
+.password-field{
+position:relative;
+}
+
+.eye-btn{
+background:none;
+border:none;
+cursor:pointer;
+color:#a30000;
+}
+
+/* Login options: remember me + forgot */
+.login-options{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px; /* space above login button */
+    font-size:14px;
+    color:#a30000;
+}
+
+.login-options label{
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.login-options .forgot{
+    text-decoration:none;
+    color:#a30000;
+}
+
+.login-options .forgot:hover{
+    text-decoration:underline;
+}
+
+/* BUTTON */
+
+.login-btn{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#c10000;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.login-btn:hover{
+background:#e00000;
+}
+
+.login-actions{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px;
+}
+
+.forgot{
+font-size:13px;
+color:#a30000;
+text-decoration:none;
+}
+
+/* REGISTER PANEL */
+
+.register-panel{
+flex:1;
+background:linear-gradient(135deg,#7a0000,#b30000);
+color:white;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:40px;
+}
+
+.register-panel h2{
+margin-bottom:15px;
+}
+
+.register-panel p{
+margin-bottom:25px;
+}
+
+.register-btn{
+padding:12px 25px;
+border:2px solid white;
+background:transparent;
+color:white;
+border-radius:8px;
+cursor:pointer;
+}
+
+.register-btn:hover{
+background:white;
+color:#8b0000;
+}
+
+.error{
+color:red;
+font-size:13px;
+}
+/* Password hint */
+.password-hint{
+    font-size: 12px;
+    color: red;   /* changed to red for warning */
+    margin: 3px 0 10px 5px;
+    display: block;
+}
+
+/* Confirm password warning */
+.password-match-warning{
+    font-size: 12px;
+    margin: 3px 0 10px 5px;
+    color: red;
+}
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar{
+
+width:8px;
+
+}
+
+::-webkit-scrollbar-track{
+
+background:#2a0000;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+background:#7a1a1a;
+
+border-radius:4px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+background:#a62626;
+
+}
+
+/* ANIMATION */
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+transform:translateY(-20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+
+@keyframes rotateGlow{
+
+0%{
+transform:rotate(0deg);
+}
+
+100%{
+transform:rotate(360deg);
+}
+
+}

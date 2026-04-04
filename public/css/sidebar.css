@@ -1,0 +1,41 @@
+body {
+    background: red !important;
+}
+.checkbox-input {
+    display: none;
+}
+
+/* Sidebar size control */
+.vertical-sidebar nav {
+    width: 260px;
+    transition: all 0.3s ease;
+}
+
+.vertical-sidebar .checkbox-input:not(:checked) ~ nav {
+    width: 70px;
+}
+
+/* Hide text when collapsed */
+.vertical-sidebar .checkbox-input:not(:checked) .text,
+.vertical-sidebar .checkbox-input:not(:checked) figcaption {
+    display: none;
+}
+
+/* Icon style */
+.icon {
+    width: 24px;
+    text-align: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .vertical-sidebar {
+        position: fixed;
+        left: -260px;
+        z-index: 50;
+    }
+
+    .vertical-sidebar .checkbox-input:checked ~ nav {
+        transform: translateX(260px);
+    }
+}
