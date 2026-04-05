@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Product extends Model
 {
     use HasFactory;
-     protected $fillable = [
+    
+    protected $fillable = [
         'name',
         'description',
         'quantity',
@@ -24,6 +25,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the cart items for this product.
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
     }
 
     public function getFinalPriceAttribute()

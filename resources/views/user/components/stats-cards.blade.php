@@ -10,7 +10,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Total Orders</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalOrders">0</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalOrders">{{ $totalOrders ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Total Spent</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalSpent">₱0.00</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalSpent">₱{{ number_format($totalSpent ?? 0, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Average Order</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="avgOrder">₱0.00</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="avgOrder">₱{{ number_format($averageOrder ?? 0, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Pending Orders</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="pendingOrders">0</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="pendingOrders">{{ $pendingOrders ?? 0 }}</p>
                 </div>
             </div>
         </div>

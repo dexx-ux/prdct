@@ -82,7 +82,7 @@
                     @endforeach
                 </select>
                 <select id="sortSelect" class="sort-select">
-                    <option value="default">Default (ID Order)</option>
+                        <option value="default">Default </option>
                     <option value="newest">Newest First</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>

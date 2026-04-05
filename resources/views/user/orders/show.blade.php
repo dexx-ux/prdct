@@ -34,7 +34,7 @@
                         </span>
                     </div>
                     @if ($status === 'pending')
-                        <button onclick="cancelOrder({{ $order->id }})" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                        <button onclick="confirmCancel({{ $order->id }})" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -52,30 +52,35 @@
                     </svg>
                     Product Details
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Product Info -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Product</p>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                            {{ $order->product->name ?? 'Deleted Product' }}
-                        </p>
-                        @if ($order->product)
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                Category: <span class="font-medium text-blue-600 dark:text-blue-400">{{ $order->product->category->name ?? 'N/A' }}</span>
-                            </p>
-                        @endif
-                    </div>
-
-                    <!-- Quantity -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Quantity</p>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
-                            </svg>
-                            {{ $order->quantity }} unit(s)
-                        </p>
-                    </div>
+                @php
+                    $orderItems = $order->items ?? collect();
+                @endphp
+                <div class="space-y-4">
+                    @if($orderItems->isNotEmpty())
+                        @foreach($orderItems as $item)
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Product</p>
+                                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->product->name ?? 'Deleted Product' }}</p>
+                                        @if($item->product && $item->product->category)
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Category: <span class="font-medium text-blue-600 dark:text-blue-400">{{ $item->product->category->name }}</span></p>
+                                        @endif
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Qty</p>
+                                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->quantity }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Unit: ₱{{ number_format($item->price, 2) }}</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white mt-1">Subtotal: ₱{{ number_format($item->subtotal, 2) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <p class="text-gray-600 dark:text-gray-400">No product items available for this order.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -156,15 +161,159 @@
         </div>
     </div>
 
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .toast-notification {
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast-notification.hide {
+            animation: slideOut 0.3s ease;
+        }
+        
+        .modal-overlay {
+            animation: fadeIn 0.2s ease;
+        }
+    </style>
+
     <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification fixed bottom-4 right-4 z-50 px-5 py-3 rounded-xl shadow-2xl transition-all duration-300';
+            
+            const colors = {
+                success: 'bg-green-600 text-white',
+                error: 'bg-red-600 text-white',
+                warning: 'bg-yellow-500 text-white',
+                info: 'bg-blue-600 text-white'
+            };
+            
+            toast.className += ' ' + (colors[type] || colors.success);
+            
+            const icons = {
+                success: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                          </svg>`,
+                error: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>`,
+                warning: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                          </svg>`,
+                info: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>`
+            };
+            
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    ${icons[type] || icons.success}
+                    <span class="font-medium text-sm">${message}</span>
+                    <button onclick="this.closest('.toast-notification').remove()" class="ml-2 hover:opacity-80">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.classList.add('hide');
+                    setTimeout(() => {
+                        if (toast && toast.parentNode) toast.remove();
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+        // Custom confirm dialog
+        function confirmCancel(orderId) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-70 z-50 flex items-center justify-center p-4';
+            
+            const modal = document.createElement('div');
+            modal.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full transform transition-all';
+            modal.innerHTML = `
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Cancel Order</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to cancel this order? This action cannot be undone.</p>
+                    <div class="flex gap-3">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium">
+                            No, Go Back
+                        </button>
+                        <button onclick="cancelOrder(${orderId})" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium">
+                            Yes, Cancel Order
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+        
+        // Cancel order function
         function cancelOrder(orderId) {
-            if (!confirm('Are you sure you want to cancel this order?')) return;
-
-            const cancelBtn = event.target.closest('button');
-            const originalText = cancelBtn.innerHTML;
-            cancelBtn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> Canceling...';
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+            
+            const cancelBtn = document.querySelector('button[onclick*="cancelOrder"]');
+            if (!cancelBtn) return;
+            
+            const originalHTML = cancelBtn.innerHTML;
+            cancelBtn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>';
             cancelBtn.disabled = true;
-
+            
             fetch(`/user/orders/${orderId}/cancel`, {
                 method: 'POST',
                 headers: {
@@ -175,37 +324,20 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Show success message
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white bg-green-600 transition-all duration-300 transform translate-x-full';
-                    toast.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Order cancelled successfully!</span>
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
-                    
-                    setTimeout(() => {
-                        toast.classList.remove('translate-x-full');
-                        toast.classList.add('translate-x-0');
-                    }, 10);
-                    
+                    showToast('Order cancelled successfully!', 'success');
                     setTimeout(() => {
                         window.location.href = '{{ route("user.orders.index") }}';
                     }, 1500);
                 } else {
-                    alert('Error: ' + data.message);
-                    cancelBtn.innerHTML = originalText;
+                    showToast(data.message || 'Failed to cancel order', 'error');
+                    cancelBtn.innerHTML = originalHTML;
                     cancelBtn.disabled = false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-                cancelBtn.innerHTML = originalText;
+                showToast('An error occurred. Please try again.', 'error');
+                cancelBtn.innerHTML = originalHTML;
                 cancelBtn.disabled = false;
             });
         }

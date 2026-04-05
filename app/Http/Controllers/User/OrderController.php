@@ -16,12 +16,21 @@ class OrderController extends Controller
      */
     public function index()
     {
+        $userId = Auth::id();
+
         $orders = UserOrder::with('items.product')
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->latest()
             ->paginate(10);
+
+        $totalOrders = UserOrder::where('user_id', $userId)->count();
+        $totalSpent = UserOrder::where('user_id', $userId)->sum('total_amount');
+        $averageOrder = UserOrder::where('user_id', $userId)->avg('total_amount') ?? 0;
+        $pendingOrders = UserOrder::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->count();
         
-        return view('user.orders.index', compact('orders'));
+        return view('user.orders.index', compact('orders', 'totalOrders', 'totalSpent', 'averageOrder', 'pendingOrders'));
     }
 
     /**
@@ -44,7 +53,9 @@ class OrderController extends Controller
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1|max:100',
-            'total_price' => 'required|numeric|min:0'
+            'total_price' => 'required|numeric|min:0',
+            'phone' => 'required|string|min:10',  // Changed from contact_number to phone
+            'address' => 'required|string|min:10'
         ]);
 
         $user = Auth::user();
@@ -65,7 +76,18 @@ class OrderController extends Controller
             ], 422);
         }
 
+        // Update user's phone and address if provided (save for future)
+        // Using your existing 'phone' column instead of 'contact_number'
+        if ($request->phone) {
+            $user->phone = $request->phone;  // Changed to 'phone'
+        }
+        if ($request->address) {
+            $user->address = $request->address;
+        }
+        $user->save();
+
         try {
+            // Create order using UserOrder model
             $order = UserOrder::create([
                 'user_id' => Auth::id(),
                 'order_number' => 'ORD-' . strtoupper(uniqid()),
@@ -73,7 +95,8 @@ class OrderController extends Controller
                 'status' => 'pending',
                 'payment_status' => 'pending',
                 'payment_method' => 'cash',
-                'shipping_address' => '',
+                'shipping_address' => $request->address,
+                'phone' => $request->phone,  // Changed from contact_number to phone
             ]);
 
             UserOrderItem::create([

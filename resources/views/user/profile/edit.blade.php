@@ -9,6 +9,79 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
+            {{-- Success Message --}}
+            @if (session('status') === 'profile-updated' || session('success'))
+                <div class="mb-6 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-400 p-4 rounded-lg shadow-md" role="alert">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="font-medium">Profile updated successfully!</span>
+                        </div>
+                        <button onclick="this.closest('[role=alert]').remove()" class="text-green-700 dark:text-green-400 hover:text-green-900">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+            
+            @if (session('status') === 'photo-updated')
+                <div class="mb-6 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-400 p-4 rounded-lg shadow-md" role="alert">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="font-medium">Profile photo updated successfully!</span>
+                        </div>
+                        <button onclick="this.closest('[role=alert]').remove()" class="text-green-700 dark:text-green-400 hover:text-green-900">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+            
+            @if (session('status') === 'photo-removed')
+                <div class="mb-6 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-400 p-4 rounded-lg shadow-md" role="alert">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="font-medium">Profile picture removed successfully!</span>
+                        </div>
+                        <button onclick="this.closest('[role=alert]').remove()" class="text-green-700 dark:text-green-400 hover:text-green-900">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+            
+            {{-- Error Messages --}}
+            @if ($errors->any())
+                <div class="mb-6 bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-400 p-4 rounded-lg shadow-md" role="alert">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium">Please fix the following errors:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {{-- Left Column --}}
@@ -32,7 +105,7 @@
                                 @endif
                                 
                                 <div class="mt-4 w-full">
-                                    <form method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data">
+                                    <form method="POST" action="{{ route('user.profile.upload-photo') }}" enctype="multipart/form-data">
                                         @csrf
                                         @method('PATCH')
                                         
@@ -90,21 +163,21 @@
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-6">Profile Information</h3>
                             
-                            <form method="POST" action="{{ route('admin.profile.update') }}">
+                            <form method="POST" action="{{ route('user.profile.update') }}">
                                 @csrf
                                 @method('PATCH')
                                 
                                 <div class="space-y-5">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
-                                        <input type="text" name="name" value="{{ Auth::user()->name }}" 
+                                        <input type="text" name="name" value="{{ old('name', Auth::user()->name) }}" 
                                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a2c3e] focus:border-[#1a2c3e]">
                                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                                     </div>
                                     
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
-                                        <input type="email" name="email" value="{{ Auth::user()->email }}" 
+                                        <input type="email" name="email" value="{{ old('email', Auth::user()->email) }}" 
                                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a2c3e] focus:border-[#1a2c3e]">
                                         @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                                     </div>
@@ -118,6 +191,15 @@
                                     </div>
                                     
                                     <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Address</label>
+                                        <textarea name="address" rows="4" 
+                                                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a2c3e] focus:border-[#1a2c3e]"
+                                                  placeholder="House/Unit #, Street, Barangay, City, Province, Zip Code">{{ old('address', Auth::user()->address) }}</textarea>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Please provide your complete delivery address for accurate order delivery</p>
+                                        @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                    </div>
+                                    
+                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
                                         <input type="text" value="{{ ucfirst(Auth::user()->role) }}" disabled 
                                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -128,9 +210,11 @@
                                     <button type="submit" class="px-6 py-2 bg-[#1a2c3e] hover:bg-[#0f1e2c] text-white rounded-md transition duration-200">
                                         Update Profile
                                     </button>
-                                    <a href="{{ route('admin.profile.password') }}" 
+                                    <a href="{{ route('user.profile.password') }}" 
                                        class="px-6 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-200 flex items-center gap-2">
-                                        <i class="bi bi-key"></i>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                        </svg>
                                         Change Password
                                     </a>
                                 </div>
@@ -160,7 +244,7 @@
                             class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition">
                         Cancel
                     </button>
-                    <form method="POST" action="{{ route('admin.profile.remove-photo') }}">
+                    <form method="POST" action="{{ route('user.profile.remove-photo') }}">
                         @csrf
                         @method('DELETE')
                         <button type="submit" 
@@ -190,18 +274,4 @@
             }
         });
     </script>
-
-    @if (session('status') === 'profile-updated')
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-             class="fixed bottom-4 right-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg shadow-lg">
-            Profile updated successfully!
-        </div>
-    @endif
-    
-    @if (session('photo-removed'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-             class="fixed bottom-4 right-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg shadow-lg">
-            Profile picture removed successfully!
-        </div>
-    @endif
 </x-app-layout>

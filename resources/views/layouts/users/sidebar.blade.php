@@ -104,6 +104,34 @@
                     </a>
                 </li>
 
+                <!-- Cart -->
+                <li class="relative">
+                    <a href="{{ route('user.cart.index') }}"
+                        id="cart-link"
+                        class="flex items-center p-2 rounded-lg transition-all duration-300 group"
+                        :class="{
+                            'justify-center': sidebarCollapsed,
+                            'justify-start': !sidebarCollapsed,
+                            'bg-[#1a2c3e] text-white': {{ request()->routeIs('user.cart.*') ? 'true' : 'false' }},
+                            'hover:bg-[#1a2c3e]/10 dark:hover:bg-[#1a2c3e]/20': !{{ request()->routeIs('user.cart.*') ? 'true' : 'false' }}
+                        }"
+                        @mouseenter="showTooltip($event, 'My Cart')"
+                        @mouseleave="hideTooltip()"
+                        @click="closeDropdown(); hideTooltip()">
+                        <i class="bi bi-cart3 text-xl flex-shrink-0" 
+                           :class="{ 'text-white': {{ request()->routeIs('user.cart.*') ? 'true' : 'false' }}, 'text-[#1a2c3e] dark:text-[#1a2c3e]': !{{ request()->routeIs('user.cart.*') ? 'true' : 'false' }} }"></i>
+                        <span id="cart-text" class="ml-3 text-sm font-medium"
+                              :class="{ 
+                                  'hidden': sidebarCollapsed,
+                                  'inline': !sidebarCollapsed,
+                                  'text-white': {{ request()->routeIs('user.cart.*') ? 'true' : 'false' }},
+                                  'text-gray-700 dark:text-gray-300': !{{ request()->routeIs('user.cart.*') ? 'true' : 'false' }}
+                              }">
+                            My Cart
+                        </span>
+                    </a>
+                </li>
+
                 <!-- My Orders -->
                 <li class="relative">
                     <a href="{{ route('user.orders.index') }}"

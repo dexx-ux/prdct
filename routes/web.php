@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\OrdersController as AdminOrdersController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
+use App\Http\Controllers\CartController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
@@ -37,6 +38,7 @@ Route::post('/guest/order', [GuestOrderController::class, 'store'])->name('guest
 // Order routes for guests and logged-in users
 Route::post('/order/store', [OrdersController::class, 'store'])->name('order.store');
 Route::post('/order/store-multiple', [OrdersController::class, 'storeMultiple'])->name('order.store-multiple');
+Route::post('/user/order/checkout', [OrdersController::class, 'checkout'])->name('user.order.checkout');
 Route::get('/order/track', [OrdersController::class, 'track'])->name('order.track');
 Route::get('/order/confirmation/{id}', [OrdersController::class, 'confirmation'])->name('orders.confirmation');
 
@@ -49,6 +51,24 @@ Route::get('/order/confirmation/{id}', [OrdersController::class, 'confirmation']
 Route::get('/login', fn() => view('auth.login'))->name('login');
 Route::get('/register', fn() => view('auth.register'))->name('register');
 
+
+/*
+|--------------------------------------------------------------------------
+| Cart Routes (Available to all users)
+|--------------------------------------------------------------------------
+*/
+
+Route::group(['prefix' => 'user'], function () {
+    // Products browsing (available to all users)
+    Route::get('/products', [\App\Http\Controllers\User\ProductController::class, 'browse'])->name('user.products.browse');
+    
+    // Cart routes
+    Route::get('/cart', [CartController::class, 'index'])->name('user.cart.index');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('user.cart.add');
+    Route::put('/cart/{cartItemId}', [CartController::class, 'update'])->name('user.cart.update');
+    Route::delete('/cart/{cartItemId}', [CartController::class, 'destroy'])->name('user.cart.destroy');
+    Route::post('/cart/merge', [CartController::class, 'mergeGuestCart'])->name('user.cart.merge');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -124,6 +144,8 @@ Route::middleware(['auth', 'verified'])
         Route::post('/orders/{id}/cancel', [AdminOrdersController::class, 'cancel'])->name('orders.cancel');
         Route::delete('/orders/{id}', [AdminOrdersController::class, 'destroy'])->name('orders.destroy');
 
+        // REMOVE THIS LINE FROM HERE - It's in the wrong place!
+        // Route::get('/user/info', [UserController::class, 'getUserInfo'])->name('user.getInfo');
 
         // ================= PROFILE =================
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -132,6 +154,7 @@ Route::middleware(['auth', 'verified'])
         Route::get('/profile/password', [AdminProfileController::class, 'password'])->name('profile.password');
         Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
+
 
 
 /*
@@ -158,8 +181,8 @@ Route::middleware(['auth', 'verified'])
         Route::get('/profile/password', [UserProfileController::class, 'passwordForm'])->name('profile.password');
         Route::put('/profile/password', [UserProfileController::class, 'updatePassword'])->name('profile.password.update');
         
-        // User Products
-        Route::get('/products', [\App\Http\Controllers\User\ProductController::class, 'browse'])->name('products.browse');
+        // ADD THE USER INFO ROUTE HERE (correct location)
+        Route::get('/info', [\App\Http\Controllers\User\UserController::class, 'getUserInfo'])->name('getInfo');
         
         // User Orders
         Route::post('/order', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('order.store');
@@ -168,6 +191,7 @@ Route::middleware(['auth', 'verified'])
         Route::post('/orders/{id}/cancel', [\App\Http\Controllers\User\OrderController::class, 'cancel'])->name('orders.cancel');
         Route::get('/orders/statistics', [\App\Http\Controllers\User\OrderController::class, 'statistics'])->name('orders.statistics');
         Route::get('/orders-history', [\App\Http\Controllers\User\OrderController::class, 'history'])->name('orders.history');
+         Route::post('/order', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('order.store');
 });
 
 /*

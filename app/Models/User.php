@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',              // Phone number (only for users, not admins)
+        'address',            // ✅ ADD THIS - Delivery address
         'profile_photo_path', // Profile photo path
         'last_login_at',      // Last login timestamp
         'status',             // User status (active/inactive)
@@ -101,6 +102,14 @@ class User extends Authenticatable
     }
     
     /**
+     * Determine if address field should be shown
+     */
+    public function canHaveAddress()
+    {
+        return $this->role === 'user';
+    }
+    
+    /**
      * Scope to get active users (logged in within inactive days)
      */
     public function scopeActive($query)
@@ -155,5 +164,13 @@ class User extends Authenticatable
         $this->save();
         
         return $this;
+    }
+    
+    /**
+     * Get the user's cart items
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
     }
 }

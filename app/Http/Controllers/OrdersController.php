@@ -337,4 +337,97 @@ class OrdersController extends Controller
         return view('orders.confirmation', compact('order'));
     }
 
+    /**
+     * Checkout cart items
+     */
+    public function checkout(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'required|string|min:10'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Get cart items
+            $cartItems = \App\Models\CartItem::where('user_id', Auth::id())->with('product')->get();
+            
+            if ($cartItems->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your cart is empty'
+                ], 400);
+            }
+
+            // Check stock availability
+            foreach ($cartItems as $cartItem) {
+                if ($cartItem->product->quantity < $cartItem->quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock for {$cartItem->product->name}"
+                    ], 400);
+                }
+            }
+
+            // Calculate total
+            $totalPrice = $cartItems->sum(function($item) {
+                return $item->product->price * $item->quantity;
+            });
+
+            // Generate unique order number
+            $orderNumber = 'ORD-' . strtoupper(uniqid());
+
+            // Create order
+            $order = UserOrder::create([
+                'user_id' => Auth::id(),
+                'order_number' => $orderNumber,
+                'total_amount' => $totalPrice,
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'payment_method' => 'cod', // Default to cash on delivery
+                'shipping_address' => $validated['address']
+            ]);
+
+            // Create order items and update stock
+            foreach ($cartItems as $cartItem) {
+                UserOrderItem::create([
+                    'user_order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->product->price,
+                    'subtotal' => $cartItem->product->price * $cartItem->quantity
+                ]);
+
+                // Update product stock
+                $cartItem->product->decrement('quantity', $cartItem->quantity);
+            }
+
+            // Clear cart
+            \App\Models\CartItem::where('user_id', Auth::id())->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order placed successfully!',
+                'order' => $order
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            \Log::error('Cart checkout failed', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to place order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

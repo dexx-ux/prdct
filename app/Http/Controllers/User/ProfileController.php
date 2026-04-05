@@ -29,12 +29,14 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500', // ✅ ADD ADDRESS VALIDATION
         ]);
         
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'address' => $request->address, // ✅ ADD ADDRESS UPDATE
         ]);
         
         return back()->with('status', 'profile-updated');

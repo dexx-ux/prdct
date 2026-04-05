@@ -200,11 +200,99 @@
 <div id="globalDropdownContainer" style="position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none;"></div>
 
 <script>
+
+    // Toast notification function
+function showToast(message, type = 'error') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) existingToast.remove();
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+    toast.innerHTML = `
+        <div class="flex items-center gap-2">
+            <i class="bi ${type === 'error' ? 'bi-x-circle-fill' : 'bi-check-circle-fill'} text-lg"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add styles
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'error' ? '#ef4444' : '#22c55e'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 99999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+        cursor: pointer;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+    
+    // Click to dismiss
+    toast.onclick = () => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    };
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .custom-toast {
+        transition: all 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
+
+
     // Global dropdown management - renders dropdown outside scroll container
     let currentDropdownId = null;
     
     function showGlobalDropdown(event, orderId) {
         event.stopPropagation();
+        
+        // Check if order is cancelled before showing dropdown
+        const row = document.querySelector(`.order-row[data-order-id="${orderId}"]`);
+        if (row && row.getAttribute('data-status') === 'cancelled') {
+showToast('Cannot modify cancelled orders', 'error');
+            return;
+        }
         
         // Close any existing dropdown
         closeGlobalDropdown();
@@ -398,9 +486,15 @@
     });
     
     function updateStatus(orderId, newStatus) {
+        // Check if order is cancelled - prevent any status change
+        const row = document.querySelector(`.order-row[data-order-id="${orderId}"]`);
+        if (row && row.getAttribute('data-status') === 'cancelled') {
+            alert('Cannot modify cancelled orders');
+            return;
+        }
+        
         console.log(`Updating order ${orderId} to ${newStatus}`);
         
-        // Simulate AJAX - replace with actual endpoint
         fetch(`/admin/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
@@ -427,13 +521,15 @@
                         statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
                     }
                 }
-                showNotification('Status updated!', 'success');
+                alert('Status updated successfully');
                 if (window.filterOrders) window.filterOrders();
+            } else {
+                alert('Failed to update status: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Failed to update status', 'error');
+            alert('Failed to update status');
         });
     }
     
@@ -448,11 +544,11 @@
                 if (data.success) {
                     const row = document.querySelector(`.order-row[data-order-id="${orderId}"]`);
                     if (row) row.remove();
-                    showNotification('Order deleted', 'success');
+                    alert('Order deleted');
                     if (window.filterOrders) window.filterOrders();
                 }
             })
-            .catch(error => showNotification('Delete failed', 'error'));
+            .catch(error => alert('Delete failed'));
         }
     }
     
@@ -473,7 +569,7 @@
                         const row = document.querySelector(`.order-row[data-order-id="${id}"]`);
                         if (row) row.remove();
                     });
-                    showNotification(`${ids.length} order(s) deleted`, 'success');
+                    alert(`${ids.length} order(s) deleted`);
                     updateBulkDeleteBtn();
                     if (window.filterOrders) window.filterOrders();
                 }
@@ -500,10 +596,6 @@
     
     function openOrderModal(orderId) {
         alert(`View order #${orderId}`);
-    }
-    
-    function showNotification(msg) {
-        alert(msg);
     }
 </script>
 
